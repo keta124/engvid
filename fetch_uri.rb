@@ -1,5 +1,6 @@
 require 'httparty'
 require 'nokogiri'
+require 'uri'
 
 class FetchUri
   def initialize(uri)
@@ -71,6 +72,37 @@ class FetchUri
       apicall = HTTParty.get(
         @uri,
         headers: {"User-Agent" => @user_agent},
+        timeout: 30
+      )
+      @doc ||= Nokogiri::HTML apicall.parsed_response
+    rescue => e 
+      puts e
+    end
+  end
+end
+class FetchUriPost < FetchUri
+  def initialize(uri,data)
+    super(uri)
+    @data =data
+  end
+  def doc
+    user_agent
+    proxy
+    begin
+      apicall = HTTParty.post(
+        @uri,
+        body: "topic[]:83",
+        http_proxyaddr: @proxy_host,
+        http_proxyport: @proxy_port,
+        headers: {"User-Agent" => @user_agent,"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"},
+        timeout: 30
+      )
+      @doc ||= Nokogiri::HTML apicall.parsed_response
+    rescue Net::OpenTimeout
+      apicall = HTTParty.post(
+        @uri,
+        body: "topic[]=83",
+        headers: {"User-Agent" => @user_agent,"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"},
         timeout: 30
       )
       @doc ||= Nokogiri::HTML apicall.parsed_response

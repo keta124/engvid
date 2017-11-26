@@ -15,4 +15,21 @@ class Category
     puts @items_arr
   end
 end
+class LessonData
+  def initialize
+    @uri = "https://www.engvid.com/english-lessons"
+    @data = "{topic[]:83}"
+  end
+  def lesson
+    crawler_lesson
+  end
+  def crawler_lesson
+    lesson_topic =FetchUriPost.new(@uri,@data).doc
+    #lesson_topic.each do |topic|
+    #  @items_arr << topic['class'].to_s.gsub(/\D/, '').to_i
+    #end
+    puts lesson_topic
+  end
+end
 Category.new.crawler_items
+LessonData.new.crawler_lesson
