@@ -1,12 +1,11 @@
-require 'net/http'
+require 'httparty'
 require 'nokogiri'
 require 'uri'
-require 'open-uri'
 
 class FetchUri
   def initialize(uri,headers)
     # headers hash
-    @uri = URI.parse(uri)
+    @uri = uri
     @headers = headers
     @proxy =proxy
     @user_agent =user_agent
@@ -61,19 +60,58 @@ class FetchUri
   end
   def doc
     begin
-      api = Net::HTTP.new(@uri.host,@uri.port,@proxy[0],@proxy[1])
-      api.use_ssl =(@uri.scheme =='https')
-      apicall = api.get(@uri.path,@headers)
-      @doc ||= Nokogiri::HTML apicall.body
-    rescue 
-      api = Net::HTTP.new(@uri.host,@uri.port)
-      api.use_ssl =(@uri.scheme =='https')
-      apicall = api.get(@uri.path,@header)
-      @doc ||= Nokogiri::HTML apicall.body
+      apicall = HTTParty.get(
+        @uri,
+        http_proxyaddr: @proxy[0],
+        http_proxyport: @proxy[1],
+        headers: @headers,
+        timeout: 30
+      )
+      @doc ||= Nokogiri::HTML apicall.parsed_response
+    rescue Net::OpenTimeout
+      apicall = HTTParty.get(
+        @uri,
+        headers: @headers,
+        timeout: 30
+      )
+      @doc ||= Nokogiri::HTML apicall.parsed_response
     rescue => e 
       puts e
     end
   end
 end
-#u ="https://www.engvid.com/english-slang-15-trendy-fashion-words/"
+class FetchUriPost < FetchUri
+  def initialize(uri,data,headers)
+    super(uri,headers)
+    @data = data
+    @headers = headers
+    @headers["User-Agent"] = @user_agent
+  end
+  def doc
+    begin
+      apicall = HTTParty.post(
+        @uri,
+        body: @data,
+        http_proxyaddr: @proxy[0],
+        http_proxyport: @proxy[1],
+        headers: @headers,
+        timeout: 30
+      )
+      @doc ||= Nokogiri::HTML apicall.parsed_response
+    rescue Net::OpenTimeout
+      apicall = HTTParty.post(
+        @uri,
+        body: @data,
+        headers: @headers,
+        timeout: 30
+      )
+      @doc ||= Nokogiri::HTML apicall.parsed_response
+    rescue => e 
+      puts e
+    end
+  end
+end
+#u ='http://chanlong.vn/user/login'
+#u ='http://chanlong.vn'
+#puts FetchUriPost.new(u,'username=keta124&password=Rr12345678&alias=',{"Content-Type" => "application/x-www-form-urlencoded"}).doc
 #puts FetchUri.new(u,{}).doc

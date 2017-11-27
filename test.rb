@@ -1,11 +1,4 @@
-class ProOne
-  def pro_one
-    @pro_one =1
-  end
-end
-class ProTwo < ProOne 
-  def pro_one
-    @pro_one =2
-  end
-end
-puts ProOne.new.pro_one
+require 'viddl-rb'
+
+download_urls = ViddlRb.get_urls("https://www.youtube.com/watch?v=bj5btO2nvt8")
+download_urls.first 
